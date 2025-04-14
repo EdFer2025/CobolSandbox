@@ -1,0 +1,16 @@
+Models:
+ACCOUNT
+    ACCOUNT-NUMBER PIC 9(5)
+    ACCOUNT-HOLDER-FN PIC A(20)
+    ACCOUNT-HOLDER-LN PIC A(20)
+    ACCOUNT-BALANCE PIC 9(5)
+
+TRANSACTION
+    FROM-ACCOUNT PIC 9(5)
+    TO-ACCOUNT PIC 9(5)
+    TRANSACTION-AMOUNT PIC 9(5)        
+    TRANSACTION-DATE PIC 9(6)
+
+The User can see the Information related to an ACCOUNT.
+The User can see the Information related to a TRANSACTION.
+The User can make TRANSACTIONs.
