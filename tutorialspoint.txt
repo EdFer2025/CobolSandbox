@@ -140,11 +140,24 @@ WORKING-STORAGE SECTION.
 01 WS-ID PIC X(5) VALUE 'A121$'.
 
 
-
-
 Arithmetic operations: 
 ADD, SUBTRACT, MULTIPLY, DIVIDE, and COMPUTE verbs.
 
 
+STRINGS
+
+Inspect
+verb is used to count or replace the characters in a string. 
+String operations can be performed on alphanumeric, numeric, or alphabetic values. 
+Inspect operations are performed from left to right. The options used for the string operations are as follows
+
+String
+String verb is used to concatenate the strings. 
+Using STRING statement, two or more strings of characters can be combined to form a longer string. 
+Delimited By clause is compulsory.
+      
+Unstring
+Unstring verb is used to split one string into multiple sub-strings. Delimited By clause is compulsory.
 
 
+TABLES

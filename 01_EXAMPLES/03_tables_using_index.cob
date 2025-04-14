@@ -1,0 +1,27 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. TABLES.
+
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 ONE-DIMENTIONAL-TABLE.
+           05 WS-CODES PIC X(4) VALUE "A000" OCCURS 5 TIMES.
+       01 BI-DIMENTIONAL-TABLE.
+           05 WS-PERSON OCCURS 2 TIMES.
+               10 WS-NAME PIC A(5) VALUE "John".
+               10 WS-HOBBIES OCCURS 3 TIMES.
+                   15 WS-HOBBY PIC A(10) VALUE "singing".
+
+       PROCEDURE DIVISION.
+       MOVE '00010002000300040005' TO ONE-DIMENTIONAL-TABLE.
+       DISPLAY "ONE-DIMENTIONAL-TABLE: " ONE-DIMENTIONAL-TABLE.
+
+      *WORK WITH THE BI-DIMENTIONAL-TABLE 
+       MOVE "John singing   tennis    baseball  " &
+           "Dan  cooking   reading   swimming"
+           TO BI-DIMENTIONAL-TABLE.
+      
+      *TODO: LEARN HOW TO USE INDEXES, SET AND SEARCH
+
+
+       STOP RUN.
+       END PROGRAM TABLES.
