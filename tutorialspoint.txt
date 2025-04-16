@@ -161,3 +161,246 @@ Unstring verb is used to split one string into multiple sub-strings. Delimited B
 
 
 TABLES
+
+
+
+FILE handling
+
+
+Fields can have the following attributes 
+    - Primary keys are those fields that are unique to each record and are used to identify a particular record. For example, in students marks file, each student will be having a unique student id which forms the primary key.
+    - Secondary keys are unique or non-unique fields that are used to search for related data. For example, in students marks file, full name of student can be used as secondary key when student id is not known.
+    - Descriptors fields are used to describe an entity. For example, in students marks file, marks and percentage fields that add meaning to the record are known descriptors.
+
+
+Record is a collection of fields that is used to describe an entity
+
+Physical record is the information that exists on the external device. It is also known as a block.
+
+Logical record is the information used by the program. In COBOL programs, only one record can be handled at any point of time and it is called as logical record.
+
+File is a collection of related records. For example, the students marks file consists of records of all the students.
+
+
+
+File Organization
+
+Sequential file organization
+records that are stored and accessed in sequential order
+
+INPUT-OUTPUT SECTION.
+FILE-CONTROL.
+   SELECT file-name ASSIGN TO dd-name-jcl
+   ORGANIZATION IS SEQUENTIAL
+
+
+Indexed sequential file organization
+An indexed sequential file consists of records that can be accessed sequentially. Direct access is also possible. It consists of two parts −
+
+Data File: contains records in sequential scheme.
+Index File: contains the primary key and its address in the data file
+
+INPUT-OUTPUT SECTION.
+FILE-CONTROL.
+   SELECT file-name ASSIGN TO dd-name-jcl
+   ORGANIZATION IS INDEXED
+   RECORD KEY IS primary-key
+   ALTERNATE RECORD KEY IS rec-key
+
+
+Relative File Organization
+A relative file consists of records ordered by their relative address. Following are the key attributes of relative file organization −
+Records can be read in sequential order just like in sequential and indexed file organization.
+Records can be accessed using relative key. Relative key represents the records location relative to the address of the start of the file.
+Records can be inserted using relative key. Relative address is calculated using relative key.
+Relative file provides the fastest access to the records.
+The main disadvantage of this file system is that if some intermediate records are missing, they will also occupy space.
+
+INPUT-OUTPUT SECTION.
+FILE-CONTROL.
+   SELECT file-name ASSIGN TO dd-name-jcl
+   ORGANIZATION IS RELATIVE
+   RELATIVE KEY IS rec-key
+
+
+
+File Access Mode
+    - Sequential Access
+    - Random Access
+    - Dynamic Access
+
+
+File Organization   | Sequential Access | Random Access     | Dynamic Access
+SEQUENTIAL          | ✅ Allowed        | ❌ Not allowed    | ❌ Not allowed
+INDEXED             | ✅ Allowed        | ✅ Allowed        | ✅ Allowed
+RELATIVE            | ✅ Allowed        | ✅ Allowed        | ✅ Allowed
+
+
+Sequential Access
+When the access mode is sequential, the method of record retrieval changes as per the selected file organization.
+
+ENVIRONMENT DIVISION.
+INPUT-OUTPUT SECTION.
+FILE-CONTROL.
+   SELECT file-name ASSIGN TO dd-name
+   ORGANIZATION IS SEQUENTIAL
+   ACCESS MODE IS SEQUENTIAL
+
+Random Access
+When the access mode is RANDOM, the method of record retrieval changes as per the selected file organization.
+    - For indexed files, records are accessed according to the value placed in a key field which can be primary or alternate key. There can be one or more alternate indexes.
+    - For relative files , records are retrieved through relative record keys.
+
+ENVIRONMENT DIVISION.
+INPUT-OUTPUT SECTION.
+   FILE-CONTROL.
+   SELECT file-name ASSIGN TO dd-name
+   ORGANIZATION IS INDEXED
+   ACCESS MODE IS RANDOM
+   RECORD KEY IS rec-key1
+   ALTERNATE RECORD KEY IS rec-key2
+
+
+Dynamic Access
+Dynamic access supports both sequential and random access in the same program. 
+    - With dynamic access, one file definition is used to perform both sequential and random processing like accessing some records in sequential order and other records by their keys.
+    - With relative and indexed files, the dynamic access mode allows you to switch back and forth between sequential access mode and random access mode while reading a file by using the NEXT phrase on the READ statement. 
+
+
+ENVIRONMENT DIVISION.
+INPUT-OUTPUT SECTION.
+   FILE-CONTROL.
+   SELECT file-name ASSIGN TO dd-name
+   ORGANIZATION IS RELATIVE
+   ACCESS MODE IS DYNAMIC
+   RELATIVE KEY IS rec-key1
+
+
+MOST OF THE CASES COMBINATION:
+INDEXED File Organization       WITH        Access Mode: DYNAMIC
+
+INDEXED organization supports:
+    - Primary keys (like account numbers)
+    - Alternate keys (optional, like emails)
+    - Efficient random access (you can directly find a record by key)
+    - Sequential access for processing all records (like generating reports)
+DYNAMIC access allows both:
+    - Random access 
+    - Sequential access
+
+SELECT CUSTOMER-FILE
+    ASSIGN TO "filename.txt"
+    ORGANIZATION IS INDEXED
+    ACCESS MODE IS DYNAMIC
+    RECORD KEY IS CUSTOMER-ID
+    FILE STATUS IS WS-FILE-STATUS.
+
+
+
+File Handling Verbs
+    - Open
+    - Read
+    - Write
+    - Rewrite
+    - Delete
+    - Start
+    - Close
+
+OPEN
+OPEN "mode" file-name.
+
+Mode:
+
+Input
+Input mode is used for existing files. 
+In this mode, we can only read the file, no other operations are allowed on the file.
+	
+Output
+Output mode is used to insert records in files. 
+If a sequential file is used and the file is holding some records, 
+then the existing records will be deleted first and then new records will be inserted in the file. 
+It will not happen so in case of an indexed file or a relative file.
+	
+Extend
+Extend mode is used to append records in a sequential file. 
+In this mode, records are inserted at the end. 
+If file access mode is Random or Dynamic, then extend mode cannot be used.
+	
+I-O
+Input-Output mode.
+
+
+READ
+he function of read is to fetch records from a file. 
+At each read verb, only one record can be read into the file structure. 
+To perform a read operation, open the file in INPUT or I-O mode. 
+At each read statement, the file pointer is incremented and hence the successive records are read.
+
+READ file-name NEXT RECORD INTO ws-file-structure
+   AT END DISPLAY 'End of File'
+   NOT AT END DISPLAY 'Record Details:' ws-file-structure
+END-READ.
+
+- NEXT RECORD is optional and is specified when an indexed sequential file is being read sequentially.
+- INTO clause is optional. ws-file-structure is defined in the WorkingStorage Section to get the values from the READ statement.
+- AT END condition becomes True when the end of file is reached.
+
+
+IDENTIFICATION DIVISION.
+PROGRAM-ID. HELLO.
+
+ENVIRONMENT DIVISION.
+   INPUT-OUTPUT SECTION.
+      FILE-CONTROL.
+      SELECT STUDENT ASSIGN TO 'input.txt'
+      ORGANIZATION IS LINE SEQUENTIAL.            
+
+DATA DIVISION.
+   FILE SECTION.
+   FD STUDENT.
+   01 STUDENT-FILE.
+      05 STUDENT-ID PIC 9(5).
+      05 NAME PIC A(25).
+
+   WORKING-STORAGE SECTION.
+   01 WS-STUDENT.
+      05 WS-STUDENT-ID PIC 9(5).
+      05 WS-NAME PIC A(25).
+   01 WS-EOF PIC A(1). 
+
+PROCEDURE DIVISION.
+   OPEN INPUT STUDENT.
+      PERFORM UNTIL WS-EOF='Y'
+         READ STUDENT INTO WS-STUDENT
+            AT END MOVE 'Y' TO WS-EOF
+            NOT AT END DISPLAY WS-STUDENT
+         END-READ
+      END-PERFORM.
+   CLOSE STUDENT.
+STOP RUN.
+
+
+Write Verb
+Write verb is used to insert records in a file. 
+Once the record is written, it is no longer available in the record buffer. 
+Before inserting records into the file, move the values into the record buffer and then perform write verb.
+
+
+Rewrite Verb
+Rewrite verb is used to update the records. File should be opened in I-O mode for rewrite operations. 
+It can be used only after a successful Read operation. Rewrite verb overwrites the last record read.
+
+Delete Verb
+Delete verb can be performed only on indexed and relative files. 
+The file must be opened in I-O mode. In sequential file organization, records cannot be deleted. 
+The record last read by the Read statement is deleted in case of sequential access mode. 
+In random access mode, specify the record key and then perform the Delete operation.
+
+Close Verb
+Close verb is used to close a file. 
+After performing Close operation, the variables in the file structure will not be available for processing. 
+The link between program and file is lost.
+
+
+
+
