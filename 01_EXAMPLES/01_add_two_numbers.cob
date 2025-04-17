@@ -12,13 +12,13 @@
 
        PROCEDURE DIVISION.
 
-           ACCEPT WS-NUM1.
-           ACCEPT WS-NUM2.
+           ACCEPT WS-NUM1
+           ACCEPT WS-NUM2
 
-           ADD WS-NUM1 TO WS-NUM2 GIVING WS-NUM-SUM.
+           ADD WS-NUM1 TO WS-NUM2 GIVING WS-NUM-SUM
            
            DISPLAY "THE SUM OF " WS-NUM1 " AND " WS-NUM2 
-           " IS " WS-NUM-SUM.
+           " IS " WS-NUM-SUM
        STOP RUN.
            
        END PROGRAM ADD_TWO_NUMBERS.

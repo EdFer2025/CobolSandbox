@@ -10,9 +10,9 @@
            01 WS-DATE PIC X(10).
 
        PROCEDURE DIVISION.
-           ACCEPT WS-DATE FROM DATE. 
+           ACCEPT WS-DATE FROM DATE
       *    TODO: Format the date          
-           DISPLAY "HELLO WORLD! Today is" WS-DATE.
+           DISPLAY "HELLO WORLD! Today is" WS-DATE
        STOP RUN.
            
        END PROGRAM HELLO_WORLD_DATE.
