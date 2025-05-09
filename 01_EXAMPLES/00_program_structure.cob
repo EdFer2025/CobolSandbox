@@ -1,5 +1,5 @@
        IDENTIFICATION DIVISION.       
-      *ONLY MANDATORY PARAGRAPH 
+      *PROGRAM-ID IS THE ONLY MANDATORY PARAGRAPH 
        PROGRAM-ID. PROGRAM-STRUCTURE-SAMPLE.
       *OPTIONAL PARAGRAPHS  
        AUTHOR. EDUARDO FERIA.
@@ -7,3 +7,51 @@
        DATE-WRITTEN. MAY 12TH, 2025.
        DATE-COMPILED. MAY 12TH, 2025..
        SECURITY. NON-CONFIDENTIAL.
+      ****************************************************************** 
+       ENVIRONMENT DIVISION.
+      *THE CONFIGURATION SECTION IS NOT REALLY RELEVANT ANY MORE
+       CONFIGURATION SECTION.
+       SOURCE-COMPUTER. IBM-I.
+       OBJECT-COMPUTER. IBM-I.
+      *THE INPUT-OUTPUT SECTION IS PRIMARLY USED FOR THE FILE-CONTROL. 
+       INPUT-OUTPUT SECTION.
+      *FILE DECLARATION
+       FILE-CONTROL.
+      *WHEN A FILE IS DECLARED -> DEFINE A STRUCTURE IN FILE SECTION
+       SELECT POEM-FILE 
+           ASSIGN TO "01_EXAMPLES/00_program_structure_poem.txt"
+           ORGANIZATION IS LINE SEQUENTIAL
+           ACCESS IS SEQUENTIAL.
+      ****************************************************************** 
+      *ALL THE DATA IS DEFINED 
+       DATA DIVISION.
+      *DESCRIBES THE DATA STRUCTURE OF THE FILES
+       FILE SECTION.
+       FD POEM-FILE.
+       01 POEM-LINE PIC X(100).
+      *DATA TO BE USED IN THE PROGRAM
+       WORKING-STORAGE SECTION.
+       01 EOF-FLAG PIC X VALUE "N".
+      *ALLOCATES VARIABLES EACH TIME THE PROGRAM IS CALLED
+      *THE VALUES ARE NOT RETAINED BETWEEN CALLS (USEFUL FOR RECURSION)
+       LOCAL-STORAGE SECTION.
+      *DEFINES THE ARGUMENTS OF A SUBPROGRAM TO BE CALLED
+       LINKAGE SECTION.
+      ****************************************************************** 
+       PROCEDURE DIVISION.
+
+       DISPLAY "IT COMPILES!"  
+       DISPLAY " "
+       DISPLAY "Here is my Poem:"
+
+       OPEN INPUT POEM-FILE
+       PERFORM UNTIL EOF-FLAG = "Y"
+           READ POEM-FILE
+               AT END MOVE "Y" TO EOF-FLAG DISPLAY " "
+               NOT AT END DISPLAY POEM-LINE
+           END-READ
+       END-PERFORM
+       CLOSE POEM-FILE
+
+       STOP RUN.
+      ******************************************************************

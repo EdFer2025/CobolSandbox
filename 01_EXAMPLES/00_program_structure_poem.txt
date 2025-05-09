@@ -1,0 +1,2 @@
+A COBOL program's structure, lies in this file;
+the code may not be pretty, but it compiles ;)
