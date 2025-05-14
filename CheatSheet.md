@@ -41,7 +41,8 @@ defines the variables used in the program.
     - `FILE SECTION.` defines the record structure of the files used in the program.
     - `WORKING-STORAGE SECTION.` declares temporary variables and record structures which are used in the program.
     - `LOCAL-STORAGE SECTION.` is similar to `WORKING-STORAGE SECTION`. The only difference is that the variables will be allocated and initialized every time a program starts execution.
-    - `LINKAGE SECTION.` describes the data variable names that are received from an external program.
+    It is useful for recursion.
+    - `LINKAGE SECTION.` describes the data variable names that are received from an external program when the program is called.
 
 4. `PROCEDURE DIVISION.`
     Procedure division is used to include the logic of the program. 
