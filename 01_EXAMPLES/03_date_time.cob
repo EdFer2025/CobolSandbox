@@ -24,9 +24,6 @@
        01 WS-DAYS-GAP          PIC 9(3) VALUE 30.
        01 TEMP-INTEGER-OF-DATE PIC 9(9).
        
-           
-       
-
        PROCEDURE DIVISION.
            MOVE FUNCTION CURRENT-DATE TO WS-CURRENT-DATE-TIME
 
