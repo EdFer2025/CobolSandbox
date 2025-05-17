@@ -19,7 +19,7 @@
        78 WS-SCREEN-WIDTH VALUE 40.
        78 WS-SCREEN-HEIGHT VALUE 10.  
        78 WS-SCREEN-FILLER VALUE ".". 
-       78 WS-FOOD-COUNT VALUE 10.
+       78 WS-FOOD-COUNT VALUE 5.
 
        01 WS-SCREEN.
            05 WS-SCREEN-ROW            PIC X(WS-SCREEN-WIDTH) 
@@ -38,10 +38,13 @@
                10 WS-CHARACTER-ROW-2   PIC X(3) VALUE "/|\".
                10 WS-CHARACTER-ROW-3   PIC X(3) VALUE "/.\".  
 
+       01 WS-RANDOM-X                  PIC 99   VALUE 0.
+       01 WS-RANDOM-Y                  PIC 99   VALUE 0.
+       01 WS-FOOD-INDEX                PIC 99   VALUE 0.
        01 WS-FOOD.
-           05 WS-FOOD-IMG              PIC X VALUE "O".
-           05 WS-FOOD-Y            PIC 99 OCCURS WS-FOOD-COUNT TIMES.                 
-           05 WS-FOOD-X            PIC 99 OCCURS WS-FOOD-COUNT TIMES.                 
+           05 WS-FOOD-IMG              PIC X VALUE "O".                 
+           05 WS-FOOD-X            PIC 99 OCCURS WS-FOOD-COUNT TIMES. 
+           05 WS-FOOD-Y            PIC 99 OCCURS WS-FOOD-COUNT TIMES.                
 
        PROCEDURE DIVISION.
 
@@ -49,8 +52,9 @@
        STOP RUN.
        
        MAIN-PROCEDURE.
+             
            PERFORM INITIALIZE-FOOD
-
+           
            PERFORM DISPLAY-SCREEN
            MOVE "N" TO WS-GAME-START           
 
@@ -68,7 +72,16 @@
            .
 
        INITIALIZE-FOOD.
-           CONTINUE
+           PERFORM VARYING WS-FOOD-INDEX FROM 1 BY 1 
+                   UNTIL WS-FOOD-INDEX > WS-FOOD-COUNT
+               PERFORM SET-FOOD-POSITION
+           END-PERFORM
+           .
+       
+       SET-FOOD-POSITION.
+           PERFORM GET-RANDOM-POINT
+           MOVE WS-RANDOM-X TO WS-FOOD-X(WS-FOOD-INDEX)
+           MOVE WS-RANDOM-Y TO WS-FOOD-Y(WS-FOOD-INDEX)
            .
 
        MOVE-CHARACTER.
@@ -97,7 +110,7 @@
                MOVE WS-CHARACTER-X TO WS-CHARACTER-NEW-X
            END-IF
            IF WS-CHARACTER-NEW-Y < 4 
-               OR WS-CHARACTER-NEW-Y > WS-SCREEN-HEIGHT - 1
+               OR WS-CHARACTER-NEW-Y > WS-SCREEN-HEIGHT
                MOVE WS-CHARACTER-Y TO WS-CHARACTER-NEW-Y
            END-IF
            .
@@ -113,6 +126,7 @@
                TO WS-SCREEN-ROW(1)(WS-SCREEN-WIDTH - 8:8)
            
            PERFORM DRAW-CHARACTER
+           PERFORM DRAW-FOOD
 
            PERFORM VARYING WS-SCREEN-ROW-INDEX FROM 1 BY 1 
                    UNTIL WS-SCREEN-ROW-INDEX > WS-SCREEN-HEIGHT 
@@ -126,7 +140,7 @@
                OR (NOT WS-CHARACTER-NEW-X = WS-CHARACTER-X) 
                OR (NOT WS-CHARACTER-NEW-Y = WS-CHARACTER-Y) 
                
-      *     Erase the character from the screen    
+      *        Erase the character from the screen    
                MOVE "..." 
                    TO WS-SCREEN-ROW(WS-CHARACTER-Y)
                        (WS-CHARACTER-X - 1:3)
@@ -137,11 +151,11 @@
                    TO WS-SCREEN-ROW(WS-CHARACTER-Y - 2)
                        (WS-CHARACTER-X - 1:3)
 
-      *    Update the character's location
-           MOVE WS-CHARACTER-NEW-X TO WS-CHARACTER-X
-           MOVE WS-CHARACTER-NEW-Y TO WS-CHARACTER-Y
+      *        Update the character's location
+               MOVE WS-CHARACTER-NEW-X TO WS-CHARACTER-X
+               MOVE WS-CHARACTER-NEW-Y TO WS-CHARACTER-Y
 
-      *     Draw the character 
+      *        Draw the character 
                MOVE WS-CHARACTER-ROW-3 
                    TO WS-SCREEN-ROW(WS-CHARACTER-Y)
                        (WS-CHARACTER-X - 1:3)
@@ -152,11 +166,62 @@
                    TO WS-SCREEN-ROW(WS-CHARACTER-Y - 2)
                        (WS-CHARACTER-X - 1:3)
            END-IF
+
+      *    Check for character and food collisions
+           PERFORM VARYING WS-FOOD-INDEX FROM 1 BY 1 
+                       UNTIL WS-FOOD-INDEX > WS-FOOD-COUNT  
+       
+               IF WS-FOOD-X(WS-FOOD-INDEX) <= WS-CHARACTER-X + 1
+                   AND WS-FOOD-X(WS-FOOD-INDEX) >= WS-CHARACTER-X - 1
+                   AND WS-FOOD-Y(WS-FOOD-INDEX) <= WS-CHARACTER-Y
+                   AND WS-FOOD-Y(WS-FOOD-INDEX) >= WS-CHARACTER-Y - 2
+      *           Earn 1 point and repawn food 
+                  ADD 1 TO WS-GAME-POINTS
+                  PERFORM SET-FOOD-POSITION
+               END-IF
+           END-PERFORM
            .
+
+       DRAW-FOOD.      
+           PERFORM VARYING WS-FOOD-INDEX FROM 1 BY 1 
+                       UNTIL WS-FOOD-INDEX > WS-FOOD-COUNT  
+      *        Delete the food draw if it is on the screen 
+               IF WS-FOOD-X(WS-FOOD-INDEX) < WS-SCREEN-WIDTH
+                   MOVE WS-SCREEN-FILLER 
+                       TO WS-SCREEN-ROW(WS-FOOD-Y(WS-FOOD-INDEX))
+                           (WS-FOOD-X(WS-FOOD-INDEX):1)
+               END-IF
+      *        Decrease the X position of all the food
+      *        to make it closer to the character 
+               SUBTRACT 1 FROM WS-FOOD-X(WS-FOOD-INDEX)
+      *        If the food has reached the left border of the screen
+      *        Assign a new position for the food (respawn)
+               IF WS-FOOD-X(WS-FOOD-INDEX) = 0
+                   PERFORM SET-FOOD-POSITION
+               END-IF
+      *        Draw the food image
+               IF WS-FOOD-X(WS-FOOD-INDEX) < WS-SCREEN-WIDTH
+                   AND NOT WS-FOOD-X(WS-FOOD-INDEX) = 1
+                   MOVE WS-FOOD-IMG 
+                       TO WS-SCREEN-ROW(WS-FOOD-Y(WS-FOOD-INDEX))
+                           (WS-FOOD-X(WS-FOOD-INDEX):1)
+               END-IF      
+           END-PERFORM
+           .
+
        GET_CHAR.
       * Gets a char from the terminal with out blocking the execution
       * Uses an external C library
            CALL "getchar_nonblock" RETURNING WS-COMMAND
+           .
+
+       GET-RANDOM-POINT.
+           CALL "random_range2" 
+               USING WS-SCREEN-WIDTH
+               RETURNING WS-RANDOM-X
+           CALL "random_range" 
+               USING 2, WS-SCREEN-HEIGHT
+               RETURNING WS-RANDOM-Y           
            .
 
        CLEAR-SCREEN.

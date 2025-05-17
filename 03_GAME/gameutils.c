@@ -4,12 +4,29 @@
 #include <stdio.h>        // for getchar, ungetc, stdin
 #include <stdlib.h>
 #include <time.h>
+#include <sys/time.h>
 
-void init_rng() { srand(time(NULL)); }
 
-int random_range(int max) {
-    int min = 2;
+void init_rng() { 
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    // Combine seconds and microseconds to get a more varied seed
+    int seed =  (int)(tv.tv_sec ^ tv.tv_usec);
+    srand(seed); 
+}
+
+int random_range(int* low, int* high) {
+    init_rng();
+
+    int min = *low; 
+    int max = *high;
     return min + rand() % (max - min + 1);
+}
+
+int random_range2(int *low) {
+    int min = *low; 
+    int max = 2 * min;
+    return random_range(low, &max);
 }
 
 int getchar_nonblock(){
