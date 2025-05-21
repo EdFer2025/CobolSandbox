@@ -20,7 +20,7 @@
        78 WS-SCREEN-WIDTH VALUE 40.
        78 WS-SCREEN-HEIGHT VALUE 10.  
        78 WS-SCREEN-FILLER VALUE ".". 
-       78 WS-FOOD-COUNT VALUE 5.
+       78 WS-OBJECT-COUNT VALUE 5.
 
        01 WS-SCREEN.
            05 WS-SCREEN-ROW            PIC X(WS-SCREEN-WIDTH) 
@@ -41,14 +41,14 @@
 
        01 WS-RANDOM-X                  PIC 99   VALUE 0.
        01 WS-RANDOM-Y                  PIC 99   VALUE 0.
-       01 WS-FOOD-INDEX                PIC 99   VALUE 0.
-       01 WS-FOOD.
-           05 WS-FOOD-IMG              PIC X VALUE "O".                 
-           05 WS-FOOD-X            PIC 99 OCCURS WS-FOOD-COUNT TIMES. 
-           05 WS-FOOD-Y            PIC 99 OCCURS WS-FOOD-COUNT TIMES. 
-           05 WS-FOOD-DX           PIC S9 OCCURS WS-FOOD-COUNT TIMES
+       01 WS-OBJECT-INDEX                PIC 99   VALUE 0.
+       01 WS-OBJECT.
+           05 WS-OBJECT-IMG              PIC X VALUE "O".                 
+           05 WS-OBJECT-X           PIC 99 OCCURS WS-OBJECT-COUNT TIMES. 
+           05 WS-OBJECT-Y           PIC 99 OCCURS WS-OBJECT-COUNT TIMES. 
+           05 WS-OBJECT-DX          PIC S9 OCCURS WS-OBJECT-COUNT TIMES
                                        VALUE -2. 
-           05 WS-FOOD-DY           PIC S9 OCCURS WS-FOOD-COUNT TIMES
+           05 WS-OBJECT-DY           PIC S9 OCCURS WS-OBJECT-COUNT TIMES
                                        VALUE 0. 
 
        PROCEDURE DIVISION.
@@ -58,7 +58,7 @@
        
        MAIN-PROCEDURE.
              
-           PERFORM INITIALIZE-FOOD
+           PERFORM INITIALIZE-OBJECT
            
            PERFORM DISPLAY-SCREEN
            MOVE "N" TO WS-GAME-START           
@@ -76,29 +76,29 @@
            END-PERFORM
            .
 
-       INITIALIZE-FOOD.
-           PERFORM VARYING WS-FOOD-INDEX FROM 1 BY 1 
-                   UNTIL WS-FOOD-INDEX > WS-FOOD-COUNT
-               PERFORM SET-FOOD-POSITION
+       INITIALIZE-OBJECT.
+           PERFORM VARYING WS-OBJECT-INDEX FROM 1 BY 1 
+                   UNTIL WS-OBJECT-INDEX > WS-OBJECT-COUNT
+               PERFORM SET-OBJECT-POSITION
 
-      *        Initialize WS-FOOD-DY if MOVE-ZIG-ZAG is active
+      *        Initialize WS-OBJECT-DY if MOVE-ZIG-ZAG is active
                IF WS-OBJECTS-MOVE-ZIG-ZAG = "Y"
-                   COMPUTE WS-FOOD-DY(WS-FOOD-INDEX)
-                       = FUNCTION MOD (WS-FOOD-INDEX, 2)
-                   EVALUATE WS-FOOD-DY(WS-FOOD-INDEX)
+                   COMPUTE WS-OBJECT-DY(WS-OBJECT-INDEX)
+                       = FUNCTION MOD (WS-OBJECT-INDEX, 2)
+                   EVALUATE WS-OBJECT-DY(WS-OBJECT-INDEX)
                        WHEN 0
-                           MOVE 1 TO WS-FOOD-DY(WS-FOOD-INDEX)
+                           MOVE 1 TO WS-OBJECT-DY(WS-OBJECT-INDEX)
                        WHEN 1
-                           MOVE -1 TO WS-FOOD-DY(WS-FOOD-INDEX)
+                           MOVE -1 TO WS-OBJECT-DY(WS-OBJECT-INDEX)
                    END-EVALUATE
                END-IF
            END-PERFORM
            .
        
-       SET-FOOD-POSITION.
+       SET-OBJECT-POSITION.
            PERFORM GET-RANDOM-POINT
-           MOVE WS-RANDOM-X TO WS-FOOD-X(WS-FOOD-INDEX)
-           MOVE WS-RANDOM-Y TO WS-FOOD-Y(WS-FOOD-INDEX)
+           MOVE WS-RANDOM-X TO WS-OBJECT-X(WS-OBJECT-INDEX)
+           MOVE WS-RANDOM-Y TO WS-OBJECT-Y(WS-OBJECT-INDEX)
            .
 
        MOVE-CHARACTER.
@@ -136,12 +136,12 @@
            PERFORM CLEAR-SCREEN
            ADD 1 TO WS-GAME-FRAMES
            DISPLAY "COMMAND: " WS-COMMAND
-           PERFORM VARYING WS-FOOD-INDEX FROM 1 BY 1 
-                   UNTIL WS-FOOD-INDEX = WS-FOOD-COUNT + 1
-               DISPLAY "(X, Y): (" WS-FOOD-X(WS-FOOD-INDEX)
-                   ", " WS-FOOD-Y(WS-FOOD-INDEX) ")"
-                   " DX: " WS-FOOD-DX(WS-FOOD-INDEX)
-                   " DY: " WS-FOOD-DY(WS-FOOD-INDEX)
+           PERFORM VARYING WS-OBJECT-INDEX FROM 1 BY 1 
+                   UNTIL WS-OBJECT-INDEX = WS-OBJECT-COUNT + 1
+               DISPLAY "(X, Y): (" WS-OBJECT-X(WS-OBJECT-INDEX)
+                   ", " WS-OBJECT-Y(WS-OBJECT-INDEX) ")"
+                   " DX: " WS-OBJECT-DX(WS-OBJECT-INDEX)
+                   " DY: " WS-OBJECT-DY(WS-OBJECT-INDEX)
            END-PERFORM
            
            MOVE "FRAME: " TO WS-SCREEN-ROW(1)(2:7)
@@ -151,7 +151,7 @@
                TO WS-SCREEN-ROW(1)(WS-SCREEN-WIDTH - 8:8)
            
            PERFORM DRAW-CHARACTER
-           PERFORM DRAW-FOOD
+           PERFORM DRAW-OBJECT
 
            PERFORM VARYING WS-SCREEN-ROW-INDEX FROM 1 BY 1 
                    UNTIL WS-SCREEN-ROW-INDEX > WS-SCREEN-HEIGHT 
@@ -195,73 +195,73 @@
            .
        
        CHECK-OBJECT-COLLISIONS.
-      *    Check for character and food collisions
-           PERFORM VARYING WS-FOOD-INDEX FROM 1 BY 1 
-                       UNTIL WS-FOOD-INDEX > WS-FOOD-COUNT 
+      *    Check for character and OBJECT collisions
+           PERFORM VARYING WS-OBJECT-INDEX FROM 1 BY 1 
+                       UNTIL WS-OBJECT-INDEX > WS-OBJECT-COUNT 
                perform CHECK-OBJECT-COLLISION
            END-PERFORM
            .
 
        CHECK-OBJECT-COLLISION.
-           IF WS-FOOD-X(WS-FOOD-INDEX) <= WS-CHARACTER-X + 1
-               AND WS-FOOD-X(WS-FOOD-INDEX) >= WS-CHARACTER-X - 1
-               AND WS-FOOD-Y(WS-FOOD-INDEX) <= WS-CHARACTER-Y
-               AND WS-FOOD-Y(WS-FOOD-INDEX) >= WS-CHARACTER-Y - 2
-      *       Earn 1 point and repawn food 
+           IF WS-OBJECT-X(WS-OBJECT-INDEX) <= WS-CHARACTER-X + 1
+               AND WS-OBJECT-X(WS-OBJECT-INDEX) >= WS-CHARACTER-X - 1
+               AND WS-OBJECT-Y(WS-OBJECT-INDEX) <= WS-CHARACTER-Y
+               AND WS-OBJECT-Y(WS-OBJECT-INDEX) >= WS-CHARACTER-Y - 2
+      *       Earn 1 point and repawn OBJECT 
               ADD 1 TO WS-GAME-POINTS
-              PERFORM SET-FOOD-POSITION
+              PERFORM SET-OBJECT-POSITION
            END-IF
            .           
 
-       DRAW-FOOD.      
-           PERFORM VARYING WS-FOOD-INDEX FROM 1 BY 1 
-                       UNTIL WS-FOOD-INDEX > WS-FOOD-COUNT  
-      *        Delete the food draw if it is on the screen 
-               IF WS-FOOD-X(WS-FOOD-INDEX) < WS-SCREEN-WIDTH
-                       and WS-FOOD-X(WS-FOOD-INDEX) > 0
+       DRAW-OBJECT.      
+           PERFORM VARYING WS-OBJECT-INDEX FROM 1 BY 1 
+                       UNTIL WS-OBJECT-INDEX > WS-OBJECT-COUNT  
+      *        Delete the OBJECT draw if it is on the screen 
+               IF WS-OBJECT-X(WS-OBJECT-INDEX) < WS-SCREEN-WIDTH
+                       and WS-OBJECT-X(WS-OBJECT-INDEX) > 0
                    MOVE WS-SCREEN-FILLER 
-                       TO WS-SCREEN-ROW(WS-FOOD-Y(WS-FOOD-INDEX))
-                           (WS-FOOD-X(WS-FOOD-INDEX):1)
+                       TO WS-SCREEN-ROW(WS-OBJECT-Y(WS-OBJECT-INDEX))
+                           (WS-OBJECT-X(WS-OBJECT-INDEX):1)
                END-IF
                              
-      *        If the food has reached the left border of the screen
-      *        Assign a new position for the food (respawn)
-               IF WS-FOOD-X(WS-FOOD-INDEX) + 
-                       WS-FOOD-DX(WS-FOOD-INDEX) < 1
-                   PERFORM SET-FOOD-POSITION
+      *        If the OBJECT has reached the left border of the screen
+      *        Assign a new position for the OBJECT (respawn)
+               IF WS-OBJECT-X(WS-OBJECT-INDEX) + 
+                       WS-OBJECT-DX(WS-OBJECT-INDEX) < 1
+                   PERFORM SET-OBJECT-POSITION
                else
-      *            Decrease the X position of all the food
+      *            Decrease the X position of all the OBJECT
       *            to make it closer to the character 
-                   ADD WS-FOOD-DX(WS-FOOD-INDEX) 
-                       TO WS-FOOD-X(WS-FOOD-INDEX)
-      *            If WS-FOOD-DY is not zero then the character moves
+                   ADD WS-OBJECT-DX(WS-OBJECT-INDEX) 
+                       TO WS-OBJECT-X(WS-OBJECT-INDEX)
+      *            If WS-OBJECT-DY is not zero then the character moves
       *            vertically as well
-                   IF WS-FOOD-DY(WS-FOOD-INDEX) IS NOT ZERO
-                       ADD WS-FOOD-DY(WS-FOOD-INDEX)
-                           TO WS-FOOD-y(WS-FOOD-INDEX)
+                   IF WS-OBJECT-DY(WS-OBJECT-INDEX) IS NOT ZERO
+                       ADD WS-OBJECT-DY(WS-OBJECT-INDEX)
+                           TO WS-OBJECT-y(WS-OBJECT-INDEX)
       *                If the object is out of the screen the Y position 
       *                is reset to the border
-                       IF WS-FOOD-Y(WS-FOOD-INDEX) <= 1 
-                           MOVE 1 TO WS-FOOD-Y(WS-FOOD-INDEX)
-                           MULTIPLY -1 BY WS-FOOD-DY(WS-FOOD-INDEX)
+                       IF WS-OBJECT-Y(WS-OBJECT-INDEX) <= 1 
+                           MOVE 1 TO WS-OBJECT-Y(WS-OBJECT-INDEX)
+                           MULTIPLY -1 BY WS-OBJECT-DY(WS-OBJECT-INDEX)
                        END-IF
-                       IF WS-FOOD-Y(WS-FOOD-INDEX) 
+                       IF WS-OBJECT-Y(WS-OBJECT-INDEX) 
                                >= WS-SCREEN-HEIGHT - 1
-                           COMPUTE WS-FOOD-Y(WS-FOOD-INDEX) 
+                           COMPUTE WS-OBJECT-Y(WS-OBJECT-INDEX) 
                                = WS-SCREEN-HEIGHT - 1                            
-                           MULTIPLY -1 BY WS-FOOD-DY(WS-FOOD-INDEX)
+                           MULTIPLY -1 BY WS-OBJECT-DY(WS-OBJECT-INDEX)
                        END-IF
                    END-IF
                END-IF
 
                perform CHECK-OBJECT-COLLISION
                
-      *        Draw the food image
-               IF WS-FOOD-X(WS-FOOD-INDEX) < WS-SCREEN-WIDTH
-                   AND NOT WS-FOOD-X(WS-FOOD-INDEX) = 1
-                   MOVE WS-FOOD-IMG 
-                       TO WS-SCREEN-ROW(WS-FOOD-Y(WS-FOOD-INDEX))
-                           (WS-FOOD-X(WS-FOOD-INDEX):1)
+      *        Draw the OBJECT image
+               IF WS-OBJECT-X(WS-OBJECT-INDEX) < WS-SCREEN-WIDTH
+                   AND NOT WS-OBJECT-X(WS-OBJECT-INDEX) = 1
+                   MOVE WS-OBJECT-IMG 
+                       TO WS-SCREEN-ROW(WS-OBJECT-Y(WS-OBJECT-INDEX))
+                           (WS-OBJECT-X(WS-OBJECT-INDEX):1)
                END-IF      
            END-PERFORM
            .
