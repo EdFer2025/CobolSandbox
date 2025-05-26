@@ -21,6 +21,7 @@
        78 WS-SCREEN-HEIGHT VALUE 10.  
        78 WS-SCREEN-FILLER VALUE ".". 
        78 WS-OBJECT-COUNT VALUE 5.
+       78 WS-BOMB-COUNT VALUE 1.
 
        01 WS-SCREEN.
            05 WS-SCREEN-ROW            PIC X(WS-SCREEN-WIDTH) 
@@ -43,7 +44,8 @@
        01 WS-RANDOM-Y                  PIC 99   VALUE 0.
        01 WS-OBJECT-INDEX                PIC 99   VALUE 0.
        01 WS-OBJECT.
-           05 WS-OBJECT-IMG              PIC X VALUE "O".                 
+           05 WS-OBJECT-IMG         PIC X OCCURS WS-OBJECT-COUNT TIMES 
+                                           VALUE "O".                 
            05 WS-OBJECT-X           PIC 99 OCCURS WS-OBJECT-COUNT TIMES. 
            05 WS-OBJECT-Y           PIC 99 OCCURS WS-OBJECT-COUNT TIMES. 
            05 WS-OBJECT-DX          PIC S9 OCCURS WS-OBJECT-COUNT TIMES
@@ -80,6 +82,11 @@
            PERFORM VARYING WS-OBJECT-INDEX FROM 1 BY 1 
                    UNTIL WS-OBJECT-INDEX > WS-OBJECT-COUNT
                PERFORM SET-OBJECT-POSITION
+
+      *        Set the bombs character
+               IF WS-OBJECT-INDEX <= WS-BOMB-COUNT
+                   MOVE '*' TO WS-OBJECT-IMG(WS-OBJECT-INDEX)
+               END-IF
 
       *        Initialize WS-OBJECT-DY if MOVE-ZIG-ZAG is active
                IF WS-OBJECTS-MOVE-ZIG-ZAG = "Y"
@@ -191,14 +198,14 @@
                    TO WS-SCREEN-ROW(WS-CHARACTER-Y - 2)
                        (WS-CHARACTER-X - 1:3)
            END-IF
-           perform CHECK-OBJECT-COLLISIONS
+           PERFORM CHECK-OBJECT-COLLISIONS
            .
        
        CHECK-OBJECT-COLLISIONS.
       *    Check for character and OBJECT collisions
            PERFORM VARYING WS-OBJECT-INDEX FROM 1 BY 1 
                        UNTIL WS-OBJECT-INDEX > WS-OBJECT-COUNT 
-               perform CHECK-OBJECT-COLLISION
+               PERFORM CHECK-OBJECT-COLLISION
            END-PERFORM
            .
 
@@ -207,9 +214,18 @@
                AND WS-OBJECT-X(WS-OBJECT-INDEX) >= WS-CHARACTER-X - 1
                AND WS-OBJECT-Y(WS-OBJECT-INDEX) <= WS-CHARACTER-Y
                AND WS-OBJECT-Y(WS-OBJECT-INDEX) >= WS-CHARACTER-Y - 2
-      *       Earn 1 point and repawn OBJECT 
-              ADD 1 TO WS-GAME-POINTS
-              PERFORM SET-OBJECT-POSITION
+  
+               EVALUATE WS-OBJECT-IMG(WS-OBJECT-INDEX)
+      *            If FOOD Earn 1 point and respawn OBJECT
+                   WHEN 'O'
+                       ADD 1 TO WS-GAME-POINTS
+                       PERFORM SET-OBJECT-POSITION
+      *            If BOMB -> Game Over
+                   WHEN "*"
+                       MOVE "*************** GAME OVER ***************" 
+                           TO WS-SCREEN-ROW(6)
+                       SET EXIT-COMMAND TO TRUE 
+               END-EVALUATE
            END-IF
            .           
 
@@ -218,7 +234,7 @@
                        UNTIL WS-OBJECT-INDEX > WS-OBJECT-COUNT  
       *        Delete the OBJECT draw if it is on the screen 
                IF WS-OBJECT-X(WS-OBJECT-INDEX) < WS-SCREEN-WIDTH
-                       and WS-OBJECT-X(WS-OBJECT-INDEX) > 0
+                       AND WS-OBJECT-X(WS-OBJECT-INDEX) > 0
                    MOVE WS-SCREEN-FILLER 
                        TO WS-SCREEN-ROW(WS-OBJECT-Y(WS-OBJECT-INDEX))
                            (WS-OBJECT-X(WS-OBJECT-INDEX):1)
@@ -229,7 +245,7 @@
                IF WS-OBJECT-X(WS-OBJECT-INDEX) + 
                        WS-OBJECT-DX(WS-OBJECT-INDEX) < 1
                    PERFORM SET-OBJECT-POSITION
-               else
+               ELSE
       *            Decrease the X position of all the OBJECT
       *            to make it closer to the character 
                    ADD WS-OBJECT-DX(WS-OBJECT-INDEX) 
@@ -254,12 +270,12 @@
                    END-IF
                END-IF
 
-               perform CHECK-OBJECT-COLLISION
+               PERFORM CHECK-OBJECT-COLLISION
                
       *        Draw the OBJECT image
                IF WS-OBJECT-X(WS-OBJECT-INDEX) < WS-SCREEN-WIDTH
                    AND NOT WS-OBJECT-X(WS-OBJECT-INDEX) = 1
-                   MOVE WS-OBJECT-IMG 
+                   MOVE WS-OBJECT-IMG(WS-OBJECT-INDEX) 
                        TO WS-SCREEN-ROW(WS-OBJECT-Y(WS-OBJECT-INDEX))
                            (WS-OBJECT-X(WS-OBJECT-INDEX):1)
                END-IF      
